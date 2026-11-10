@@ -1,0 +1,201 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+// Turso is libSQL (SQLite). At runtime the app connects through the libSQL driver
+// adapter (src/lib/db.ts); DATABASE_URL here is only used by the Prisma CLI.
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  EDITOR
+}
+
+enum InquiryStatus {
+  PENDING
+  CONTACTED
+  COMPLETED
+}
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String
+  passwordHash String
+  role         AdminRole @default(EDITOR)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Destination {
+  id               String         @id @default(cuid())
+  name             String
+  slug             String         @unique
+  country          String?
+  shortDescription String
+  description      String         @default("")
+  coverUrl         String?
+  coverPublicId    String?
+  published        Boolean        @default(true)
+  featured         Boolean        @default(false)
+  sortOrder        Int            @default(0)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  packages         Package[]
+  galleryImages    GalleryImage[]
+
+  @@index([published, featured])
+}
+
+model Package {
+  id               String         @id @default(cuid())
+  title            String
+  slug             String         @unique
+  shortDescription String
+  description      String         @default("")
+  durationDays     Int
+  durationNights   Int
+  price            Int // starting price, whole currency units
+  currency         String         @default("USD")
+  coverUrl         String?
+  coverPublicId    String?
+  included         Json           @default("[]") // string[]
+  excluded         Json           @default("[]") // string[]
+  importantInfo    String         @default("")
+  featured         Boolean        @default(false)
+  published        Boolean        @default(false)
+  destinationId    String
+  destination      Destination    @relation(fields: [destinationId], references: [id], onDelete: Restrict)
+  images           PackageImage[]
+  itinerary        Itinerary[]
+  galleryImages    GalleryImage[]
+  reviews          Review[]
+  inquiries        Inquiry[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([destinationId])
+  @@index([published, featured])
+  @@index([price])
+}
+
+model PackageImage {
+  id        String   @id @default(cuid())
+  packageId String
+  package   Package  @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  url       String
+  publicId  String?
+  width     Int?
+  height    Int?
+  bytes     Int?
+  alt       String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([packageId])
+}
+
+model Itinerary {
+  id          String  @id @default(cuid())
+  packageId   String
+  package     Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  dayNumber   Int
+  title       String
+  description String
+
+  @@unique([packageId, dayNumber])
+}
+
+model Review {
+  id             String        @id @default(cuid())
+  customerName   String
+  location       String?
+  rating         Int
+  text           String
+  avatarUrl      String?
+  avatarPublicId String?
+  published      Boolean       @default(true)
+  packageId      String?
+  package        Package?      @relation(fields: [packageId], references: [id], onDelete: SetNull)
+  images         ReviewImage[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([published, createdAt])
+}
+
+model ReviewImage {
+  id        String   @id @default(cuid())
+  reviewId  String
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  url       String
+  publicId  String?
+  width     Int?
+  height    Int?
+  bytes     Int?
+  createdAt DateTime @default(now())
+
+  @@index([reviewId])
+}
+
+model GalleryImage {
+  id            String       @id @default(cuid())
+  title         String
+  description   String?
+  url           String
+  publicId      String?
+  width         Int?
+  height        Int?
+  bytes         Int?
+  featured      Boolean      @default(false)
+  destinationId String?
+  destination   Destination? @relation(fields: [destinationId], references: [id], onDelete: SetNull)
+  packageId     String?
+  package       Package?     @relation(fields: [packageId], references: [id], onDelete: SetNull)
+  createdAt     DateTime     @default(now())
+
+  @@index([destinationId])
+  @@index([packageId])
+  @@index([featured])
+}
+
+model Inquiry {
+  id        String        @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  message   String
+  status    InquiryStatus @default(PENDING)
+  packageId String?
+  package   Package?      @relation(fields: [packageId], references: [id], onDelete: SetNull)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([status, createdAt])
+}
+
+model WebsiteSettings {
+  id            String   @id @default("main")
+  companyName   String   @default("TravelBeast Tourism")
+  email         String?
+  phone         String?
+  whatsapp      String?
+  address       String?
+  facebookUrl   String?
+  instagramUrl  String?
+  tiktokUrl     String?
+  youtubeUrl    String?
+  logoUrl       String?
+  heroTitle     String   @default("Discover the World, One Adventure at a Time.")
+  heroSubtitle  String   @default("TravelBeast Tourism crafts carefully planned journeys to unforgettable destinations.")
+  heroImageUrl  String?
+  aboutText     String   @default("")
+  mission       String   @default("")
+  vision        String   @default("")
+  footerText    String   @default("")
+  updatedAt     DateTime @updatedAt
+}
