@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+/*
+ * Palette sampled from the TravelBeast logo:
+ * navy wordmark + deep ocean, bright ocean blue, sky-blue wave, sunset orange-red, amber and sun yellow.
+ * (Token names are kept from the layout template so every component picks the new theme up automatically.)
+ */
+@theme {
+  --color-ocean: #0a74c0;        /* ocean blue: links / accents on white, footer */
+  --color-teal: #0a74c0;         /* footer / ocean waves */
+  --color-deep: #07365a;         /* deep navy sections (from the "Travel" wordmark) */
+  --color-sunset: #ff4b14;       /* sunset orange-red accent ("Beast" wordmark) */
+  --color-sunset-dark: #e03a08;
+  --color-gold: #f7cf1c;         /* sun yellow: primary buttons */
+  --color-amber: #ff9a12;        /* amber wave stripe */
+  --color-sky: #3fb8e8;          /* sky-blue wave / photo frames */
+  --color-ink: #0b2236;
+  --color-mist: #eef7fd;
+  --color-royal: #0a56a0;        /* hero overlay / activities band blue */
+  --font-display: var(--font-barlow), "Arial Narrow", Impact, sans-serif;
+  --font-script: var(--font-dafoe), cursive;
+  --font-heading: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --shadow-card: 0 6px 28px -8px rgba(7, 54, 90, 0.2);
+  --shadow-lift: 0 18px 44px -12px rgba(7, 54, 90, 0.38);
+}
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    @apply bg-white font-sans text-[16px] leading-relaxed text-ink antialiased;
+    overflow-x: hidden;
+  }
+  h1, h2, h3, h4 { @apply font-heading font-bold tracking-tight text-ink; }
+  :focus-visible { @apply outline-2 outline-offset-2 outline-sunset; }
+}
+
+@layer components {
+  .container-page { @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8; }
+  .section { @apply py-16 sm:py-20; }
+  .h-hero { @apply text-4xl font-extrabold uppercase leading-[1.08] sm:text-5xl lg:text-[64px]; }
+  .h-section { @apply text-3xl sm:text-4xl; }
+  .card { @apply rounded-2xl bg-white shadow-card ring-1 ring-black/5 transition duration-300; }
+  .btn-primary { @apply btn bg-gold text-deep shadow-md hover:bg-[#ffdc45] hover:shadow-lg; }
+  .btn-blue { @apply btn bg-deep text-white hover:bg-ocean; }
+  .btn-outline { @apply btn border-2 border-deep text-deep hover:bg-deep hover:text-white; }
+  .btn-ghost { @apply btn border-2 border-white/80 text-white hover:bg-white hover:text-deep; }
+  .btn-sm { @apply px-4! py-2! text-sm; }
+  .btn-danger { @apply btn bg-red-600 text-white hover:bg-red-700; }
+  .input {
+    @apply w-full rounded-2xl border border-slate-300 bg-white px-4 py-2.5 text-[15px] text-ink placeholder:text-slate-400 focus:border-ocean focus:outline-none focus:ring-2 focus:ring-ocean/25;
+  }
+  .label { @apply mb-1.5 block text-sm font-medium text-ink; }
+  .badge { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold; }
+
+  /* Scalloped wave edge: stack several of these (see <WaveBand />) to get the striped section dividers. */
+  .wave-layer {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 110 28' preserveAspectRatio='none'%3E%3Cpath d='M0 14C18 0 37 0 55 14S92 28 110 14V28H0Z'/%3E%3C/svg%3E"), linear-gradient(#000, #000);
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 110 28' preserveAspectRatio='none'%3E%3Cpath d='M0 14C18 0 37 0 55 14S92 28 110 14V28H0Z'/%3E%3C/svg%3E"), linear-gradient(#000, #000);
+    -webkit-mask-size: 110px 28px, 100% calc(100% - 27px);
+    mask-size: 110px 28px, 100% calc(100% - 27px);
+    -webkit-mask-position: var(--wave-x, 0) 0, 0 100%;
+    mask-position: var(--wave-x, 0) 0, 0 100%;
+    -webkit-mask-repeat: repeat-x, no-repeat;
+    mask-repeat: repeat-x, no-repeat;
+  }
+}
+
+/* hide native scrollbars on the carousels */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+@utility btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition duration-200 disabled:cursor-not-allowed disabled:opacity-60 sm:text-[15px];
+}
+
+/* Interactive Sri Lanka map: pulsing ring behind each pin. */
+@keyframes map-pin-pulse {
+  0% { transform: scale(0.7); opacity: 0.65; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+.map-pin-pulse { animation: map-pin-pulse 2.2s ease-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .map-pin-pulse { animation: none; opacity: 0; }
+}
+
+/* Ticket card: half-circle notches cut into the tear line (top block = bottom corners, bottom block = top corners) */
+.ticket-top {
+  -webkit-mask: radial-gradient(11px at 0 100%, #0000 97%, #000) left / 51% 100% no-repeat, radial-gradient(11px at 100% 100%, #0000 97%, #000) right / 51% 100% no-repeat;
+  mask: radial-gradient(11px at 0 100%, #0000 97%, #000) left / 51% 100% no-repeat, radial-gradient(11px at 100% 100%, #0000 97%, #000) right / 51% 100% no-repeat;
+}
+.ticket-bottom {
+  -webkit-mask: radial-gradient(11px at 0 0, #0000 97%, #000) left / 51% 100% no-repeat, radial-gradient(11px at 100% 0, #0000 97%, #000) right / 51% 100% no-repeat;
+  mask: radial-gradient(11px at 0 0, #0000 97%, #000) left / 51% 100% no-repeat, radial-gradient(11px at 100% 0, #0000 97%, #000) right / 51% 100% no-repeat;
+}
